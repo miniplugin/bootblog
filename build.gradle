@@ -1,0 +1,113 @@
+/**
+ * Gradle binary plugin
+ * @see ://docs.gradle.org/current/userguide/plugins.html
+ */
+plugins {
+    id "org.springframework.boot" version "2.2.0.RELEASE"
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+    id "java"
+}
+
+description = """
+Project name: ${project.name}
+타임스페이스 샘플 프로젝트입니다.
+"""
+
+apply plugin: "java"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "io.spring.dependency-management"
+
+version = "1.2.0.RELEASE"
+group = "org.timespace"
+version = "${jar.version}"
+sourceCompatibility = 1.8
+
+// 소스 인코딩 지정방법 1
+[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
+
+//exclude common-logging
+[configurations.runtime, configurations.default]*.exclude(module: "commons-logging")
+
+repositories {
+    mavenCentral()
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
+}
+
+configurations {
+    compile.exclude module: "tomcat-jdbc"
+}
+
+/**
+ * 다음과 같이 선언하면 spring-boot-starter-dependencies 에서 정의한 버전을 덮어쓴다.
+ *
+ * @see ://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/html//#managing-dependencies-customizing
+ */
+ext["lombok.version"] = "1.18.10"
+
+dependencies {
+    compile('org.apache.tomcat.embed:tomcat-embed-jasper')
+    compile('javax.servlet:jstl:1.2')
+    compile("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-configuration-processor")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-starter-security")
+    //compile('org.springframework.security.oauth:spring-security-oauth2')
+    compile('org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.1.BUILD-SNAPSHOT')
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
+    compile ("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
+    compile ("io.github.jpenren:thymeleaf-spring-data-dialect:3.4.0")
+    compile ("org.thymeleaf.extras:thymeleaf-extras-java8time")
+    runtime('org.springframework.boot:spring-boot-devtools')
+    compile("org.springframework.boot:spring-boot-starter-tomcat")
+    compile("org.springframework.boot:spring-boot-starter-cache")
+    //김일국 추가
+    compile("org.apache.commons:commons-lang3:3.5")
+    //Java9 이상부터는 jaxb 의존성을 추가해야함
+    compile("javax.xml.bind:jaxb-api")
+    compile("com.h2database:h2")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+}
+
+/**
+ * @see ://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/html//#packaging-executable-configuring-launch-script
+ */
+springBoot {
+    /**
+     * Spring Boot 리패키징 시 build-info에 추가될 속성
+     */
+    buildInfo {
+        properties {
+            additionalProperties = [
+                    "written-by": "timespace"
+            ]
+        }
+    }
+}
+
+jar {
+    baseName = "${project.name}"
+    version = "${project.version}"
+}
+bootJar {
+    /**
+     * @see ://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/html//#packaging-executable-configuring
+     */
+    manifest {
+        attributes("Implementation-Title": "${project.name}",
+                "Implementation-Version": "${project.version}")
+    }
+    /**
+     * 쉘스크립트처럼 실행가능한 바이너리 jar 만들기
+     * @see ://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/html//#packaging-executable-configuring-launch-script
+     */
+    launchScript()
+}
+test {
+    useJUnitPlatform()
+}
